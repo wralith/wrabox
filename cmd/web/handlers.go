@@ -46,5 +46,19 @@ func (a *app) createSnippet(w http.ResponseWriter, r *http.Request) {
 		a.clientError(w, http.StatusMethodNotAllowed)
 		return
 	}
-	w.Write([]byte("TODO"))
+
+	// Dummy Data to add
+	// TODO how to mock mysql to write test?
+	title := "I am dummy"
+	content := "I don't feel like i am motivated enough to...\n populate dummy boy."
+	expires := "7"
+
+	id, err := a.snippets.Insert(title, content, expires)
+	if err != nil {
+		a.serverError(w, err)
+		return
+	}
+
+	http.Redirect(w, r, fmt.Sprintf("/snippet?id=%d", id), http.StatusSeeOther)
+
 }
