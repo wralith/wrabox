@@ -14,7 +14,7 @@ import (
 // I declare it as a variable inside the test function??
 // What is going on!
 type appMock struct {
-	*App
+	*app
 }
 
 func TestShowSnippet(t *testing.T) {

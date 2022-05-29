@@ -7,7 +7,7 @@ import (
 	"os"
 )
 
-type App struct {
+type app struct {
 	errorLog *log.Logger
 	infoLog  *log.Logger
 }
@@ -26,28 +26,17 @@ func main() {
 	}
 
 	// Initialize app
-	a := &App{
+	a := &app{
 		errorLog: errorLog,
 		infoLog:  infoLog,
 	}
-
-	mux := http.NewServeMux() // If not declared -> DefaultServerMux
-
-	// Routes
-	mux.HandleFunc("/", a.home)
-	mux.HandleFunc("/snippet", a.showSnippet)
-	mux.HandleFunc("/snippet/create", a.createSnippet)
-
-	// Static Files
-	fileServer := http.FileServer(http.Dir("./web/static/"))
-	mux.Handle("/static/", http.StripPrefix("/static", fileServer))
 
 	// Starts Server
 	listAddr := net.JoinHostPort(addr, port)
 	srv := &http.Server{
 		Addr:     listAddr,
 		ErrorLog: errorLog,
-		Handler:  mux,
+		Handler:  a.routes(),
 	}
 	infoLog.Printf("Listening server at %s", listAddr)
 	err := srv.ListenAndServe()

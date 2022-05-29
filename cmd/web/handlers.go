@@ -7,7 +7,7 @@ import (
 	"strconv"
 )
 
-func (a *App) home(w http.ResponseWriter, r *http.Request) {
+func (a *app) home(w http.ResponseWriter, r *http.Request) {
 	if r.URL.Path != "/" {
 		a.notFound(w)
 		return
@@ -31,7 +31,7 @@ func (a *App) home(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (a *App) showSnippet(w http.ResponseWriter, r *http.Request) {
+func (a *app) showSnippet(w http.ResponseWriter, r *http.Request) {
 	id, err := strconv.Atoi(r.URL.Query().Get("id"))
 	if err != nil || id < 1 {
 		a.notFound(w)
@@ -40,7 +40,7 @@ func (a *App) showSnippet(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "A snippet with ID %d...", id)
 }
 
-func (a *App) createSnippet(w http.ResponseWriter, r *http.Request) {
+func (a *app) createSnippet(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "POST" {
 		w.Header().Set("Allow", "POST")
 		a.clientError(w, http.StatusMethodNotAllowed)
