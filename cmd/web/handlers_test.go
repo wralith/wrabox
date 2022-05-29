@@ -9,14 +9,23 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 )
 
+// Surprisingly it worked.
+// I guess it creates a mock struct to use in tests?
+// I declare it as a variable inside the test function??
+// What is going on!
+type appMock struct {
+	*App
+}
+
 func TestShowSnippet(t *testing.T) {
 	// Dunno what i am doing, again
+	var a = &appMock{}
 
 	Convey("Snippet query by id", t, func() {
 		Convey("Should return query id in body", func() {
 			w := httptest.NewRecorder()
 			req, _ := http.NewRequest("GET", "/snippet?id=666", nil)
-			showSnippet(w, req)
+			a.showSnippet(w, req)
 			res := w.Result()
 
 			got, _ := ioutil.ReadAll(res.Body)
@@ -28,7 +37,7 @@ func TestShowSnippet(t *testing.T) {
 		Convey("Should return 404", func() {
 			w := httptest.NewRecorder()
 			req, _ := http.NewRequest("GET", "/snippet?id=-1", nil)
-			showSnippet(w, req)
+			a.showSnippet(w, req)
 
 			So(w.Code, ShouldEqual, 404)
 		})
