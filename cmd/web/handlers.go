@@ -2,9 +2,11 @@ package main
 
 import (
 	"fmt"
-	"html/template"
+	// "html/template"
 	"net/http"
 	"strconv"
+
+	"github.com/wralith/wrabox/pkg/models"
 )
 
 func (a *app) home(w http.ResponseWriter, r *http.Request) {
@@ -13,22 +15,32 @@ func (a *app) home(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	files := []string{
-		"./web/template/home.page.html",
-		"./web/template/base.layout.html",
-		"./web/template/footer.partial.html",
-	}
-
-	ts, err := template.ParseFiles(files...)
+	s, err := a.snippets.Latest()
 	if err != nil {
 		a.serverError(w, err)
 		return
 	}
 
-	err = ts.Execute(w, nil) // Different err, SCOPE
-	if err != nil {
-		a.serverError(w, err)
+	for _, snippet := range s {
+		fmt.Fprintf(w, "%v\n", snippet)
 	}
+
+	// files := []string{
+	// 	"./web/template/home.page.html",
+	// 	"./web/template/base.layout.html",
+	// 	"./web/template/footer.partial.html",
+	// }
+
+	// ts, err := template.ParseFiles(files...)
+	// if err != nil {
+	// 	a.serverError(w, err)
+	// 	return
+	// }
+
+	// err = ts.Execute(w, nil) // Different err, SCOPE
+	// if err != nil {
+	// 	a.serverError(w, err)
+	// }
 }
 
 func (a *app) showSnippet(w http.ResponseWriter, r *http.Request) {
@@ -37,7 +49,18 @@ func (a *app) showSnippet(w http.ResponseWriter, r *http.Request) {
 		a.notFound(w)
 		return
 	}
-	fmt.Fprintf(w, "A snippet with ID %d...", id)
+
+	s, err := a.snippets.Get(id)
+	if err == models.ErrNoRecord {
+		a.notFound(w)
+		return
+	}
+	if err != nil {
+		a.serverError(w, err)
+		return
+	}
+
+	fmt.Fprintf(w, "%v", s)
 }
 
 func (a *app) createSnippet(w http.ResponseWriter, r *http.Request) {

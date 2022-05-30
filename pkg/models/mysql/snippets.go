@@ -33,11 +33,60 @@ func (m *SnippetModel) Insert(title, content, expires string) (int, error) {
 }
 
 // Return specific snipped by its ID
-func (m *SnippetModel) Get(id int) (*SnippetModel, error) {
-	return nil, nil
+func (m *SnippetModel) Get(id int) (*models.Snippet, error) {
+
+	stmt := `SELECT id, title, content, created, expires FROM snippets
+	WHERE expires > UTC_TIMESTAMP() AND id = ?`
+
+	row := m.DB.QueryRow(stmt, id)
+
+	s := &models.Snippet{}
+
+	// with row.Scan copy the values of the fields in sql to Snippet struct
+	err := row.Scan(&s.ID, &s.Title, &s.Content, &s.Created, &s.Expires)
+	if err == sql.ErrNoRows {
+		return nil, models.ErrNoRecord
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	return s, nil
 }
 
-// Will return recent snippets -10-
+// Will return recent snippets
 func (m *SnippetModel) Latest() ([]*models.Snippet, error) {
-	return nil, nil
+	// Last 10 snippets
+	stmt := `SELECT id, title, content, created, expires FROM snippets
+	WHERE expires > UTC_TIMESTAMP() ORDER BY created DESC LIMIT 10`
+
+	rows, err := m.DB.Query(stmt)
+	if err != nil {
+		return nil, err
+	}
+
+	defer rows.Close()
+
+	snippets := []*models.Snippet{}
+
+	// Looping through rows like
+	for rows.Next() {
+
+		s := &models.Snippet{}
+
+		err = rows.Scan(&s.ID, &s.Title, &s.Content, &s.Created, &s.Expires)
+
+		if err != nil {
+			return nil, err
+		}
+
+		snippets = append(snippets, s)
+	}
+
+	// To get an error happened in loop
+	if err = rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return snippets, nil
 }
