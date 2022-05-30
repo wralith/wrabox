@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	// "html/template"
+	"html/template"
 	"net/http"
 	"strconv"
 
@@ -21,26 +21,24 @@ func (a *app) home(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	for _, snippet := range s {
-		fmt.Fprintf(w, "%v\n", snippet)
+	data := &templateData{Snippets: s}
+
+	files := []string{
+		"./web/template/home.page.html",
+		"./web/template/base.layout.html",
+		"./web/template/footer.partial.html",
 	}
 
-	// files := []string{
-	// 	"./web/template/home.page.html",
-	// 	"./web/template/base.layout.html",
-	// 	"./web/template/footer.partial.html",
-	// }
+	ts, err := template.ParseFiles(files...)
+	if err != nil {
+		a.serverError(w, err)
+		return
+	}
 
-	// ts, err := template.ParseFiles(files...)
-	// if err != nil {
-	// 	a.serverError(w, err)
-	// 	return
-	// }
-
-	// err = ts.Execute(w, nil) // Different err, SCOPE
-	// if err != nil {
-	// 	a.serverError(w, err)
-	// }
+	err = ts.Execute(w, data) // Different err, SCOPE
+	if err != nil {
+		a.serverError(w, err)
+	}
 }
 
 func (a *app) showSnippet(w http.ResponseWriter, r *http.Request) {
@@ -60,7 +58,25 @@ func (a *app) showSnippet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	fmt.Fprintf(w, "%v", s)
+	// Contained in template data
+	data := &templateData{Snippet: s}
+
+	files := []string{
+		"./web/template/show.page.html",
+		"./web/template/base.layout.html",
+		"./web/template/footer.partial.html",
+	}
+
+	ts, err := template.ParseFiles(files...)
+	if err != nil {
+		a.serverError(w, err)
+		return
+	}
+
+	err = ts.Execute(w, data)
+	if err != nil {
+		a.serverError(w, err)
+	}
 }
 
 func (a *app) createSnippet(w http.ResponseWriter, r *http.Request) {
