@@ -16,3 +16,6 @@
 
 ### For tests  
 `go test ./... -v`
+
+Now i am blindly following the book, blindly clicking CTRL + Enter. 
+I will replace the template based front end with single page app at the end.
