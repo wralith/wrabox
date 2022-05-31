@@ -12,18 +12,21 @@ func (a *app) routes() http.Handler {
 	// mux := http.NewServeMux() // If not declared -> DefaultServerMux
 	mux := pat.New()
 	// Middleware chain
-	mw := alice.New(a.recoverPanic, a.logRequest, secureHeaders)
+	standardMw := alice.New(a.recoverPanic, a.logRequest, secureHeaders)
+
+	// Session
+	dynamicMw := alice.New(a.session.Enable)
 
 	// Routes
-	mux.Get("/", http.HandlerFunc(a.home))
-	mux.Get("/snippet/create", http.HandlerFunc(a.createSnippetForm))
-	mux.Post("/snippet/create", http.HandlerFunc(a.createSnippet))
-	mux.Get("/snippet/:id", http.HandlerFunc(a.showSnippet))
+	mux.Get("/", dynamicMw.ThenFunc(http.HandlerFunc(a.home)))
+	mux.Get("/snippet/create", dynamicMw.ThenFunc(http.HandlerFunc(a.createSnippetForm)))
+	mux.Post("/snippet/create", dynamicMw.ThenFunc(http.HandlerFunc(a.createSnippet)))
+	mux.Get("/snippet/:id", dynamicMw.ThenFunc(http.HandlerFunc(a.showSnippet)))
 
 	// Static Files
 	fileServer := http.FileServer(http.Dir("./web/static/"))
 	mux.Get("/static/", http.StripPrefix("/static", fileServer))
 
 	// secureHeaders -> serveMux -> ... ↩
-	return mw.Then(mux)
+	return standardMw.Then(mux)
 }
