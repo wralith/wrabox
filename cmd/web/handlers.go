@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
+	"strings"
+	"unicode/utf8"
 
 	"github.com/wralith/wrabox/pkg/models"
 )
@@ -45,28 +47,50 @@ func (a *app) showSnippet(w http.ResponseWriter, r *http.Request) {
 }
 
 func (a *app) createSnippetForm(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("Create snippet"))
+
+	a.render(w, r, "create.page.html", nil)
 }
 
 func (a *app) createSnippet(w http.ResponseWriter, r *http.Request) {
-	if r.Method != "POST" {
-		w.Header().Set("Allow", "POST")
-		a.clientError(w, http.StatusMethodNotAllowed)
+	err := r.ParseForm()
+	if err != nil {
+		a.clientError(w, http.StatusBadRequest)
 		return
 	}
 
-	// Dummy Data to add
-	// TODO how to mock mysql to write test?
-	title := "I am dummy"
-	content := "I don't feel like i am motivated enough to...\n populate dummy boy."
-	expires := "7"
+	title := r.PostForm.Get("title")
+	content := r.PostForm.Get("content")
+	expires := r.PostForm.Get("expires")
+
+	errors := make(map[string]string)
+
+	// Validations
+	if strings.TrimSpace(title) == "" {
+		errors["title"] = "This field cannot be blank"
+		// Number of characters not bytes
+	} else if utf8.RuneCountInString(title) > 100 {
+		errors["title"] = "This field is too long (maximum is 100 characters)"
+	}
+
+	if strings.TrimSpace(content) == "" {
+		errors["content"] = "This field cannot be blank"
+	}
+
+	if strings.TrimSpace(expires) == "" {
+		errors["expires"] = "This field cannot be blank"
+	} else if expires != "365" && expires != "7" && expires != "1" {
+		errors["expires"] = "This field is invalid"
+	}
+
+	if len(errors) > 0 {
+		fmt.Fprint(w, errors)
+		return
+	}
 
 	id, err := a.snippets.Insert(title, content, expires)
 	if err != nil {
 		a.serverError(w, err)
 		return
 	}
-
-	http.Redirect(w, r, fmt.Sprintf("/snippet?id=%d", id), http.StatusSeeOther)
-
+	http.Redirect(w, r, fmt.Sprintf("/snippet/%d", id), http.StatusSeeOther)
 }
