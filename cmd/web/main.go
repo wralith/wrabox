@@ -81,6 +81,10 @@ func main() {
 		ErrorLog:  errorLog,
 		Handler:   a.routes(),
 		TLSConfig: tlsConfig,
+		// !! If no IdleTimeout assigned, it will use ReadTimeout as default !!
+		IdleTimeout:  time.Minute, // Default -and max- is 3 minutes
+		ReadTimeout:  5 * time.Second,
+		WriteTimeout: 10 * time.Second,
 	}
 	infoLog.Printf("Listening server at %s", listAddr)
 	// TLS
