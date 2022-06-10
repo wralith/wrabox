@@ -19,9 +19,16 @@ func (a *app) routes() http.Handler {
 
 	// Routes
 	mux.Get("/", dynamicMw.ThenFunc(http.HandlerFunc(a.home)))
+	// Snippets
 	mux.Get("/snippet/create", dynamicMw.ThenFunc(http.HandlerFunc(a.createSnippetForm)))
 	mux.Post("/snippet/create", dynamicMw.ThenFunc(http.HandlerFunc(a.createSnippet)))
 	mux.Get("/snippet/:id", dynamicMw.ThenFunc(http.HandlerFunc(a.showSnippet)))
+	// User
+	mux.Get("/user/signup", dynamicMw.ThenFunc(a.signUpUserForm))
+	mux.Post("/user/signup", dynamicMw.ThenFunc(a.signUpUser))
+	mux.Get("/user/login", dynamicMw.ThenFunc(a.loginUserForm))
+	mux.Post("/user/login", dynamicMw.ThenFunc(a.loginUser))
+	mux.Post("/user/logout", dynamicMw.ThenFunc(a.logoutUser))
 
 	// Static Files
 	fileServer := http.FileServer(http.Dir("./web/static/"))
